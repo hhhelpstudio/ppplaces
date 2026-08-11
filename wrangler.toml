@@ -1,0 +1,7 @@
+name = "ppplaces"
+pages_build_output_dir = "public"
+
+# Production secrets (GOOGLE_MAPS_SERVER_KEY, SUPABASE_URL,
+# SUPABASE_SERVICE_ROLE_KEY) are set in the Cloudflare Pages dashboard
+# under Settings -> Environment variables, never committed here.
+# For local dev, copy .dev.vars.example to .dev.vars (gitignored) instead.

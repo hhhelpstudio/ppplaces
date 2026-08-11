@@ -1,0 +1,11 @@
+{
+  "name": "ppplaces",
+  "private": true,
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "wrangler pages dev public"
+  },
+  "devDependencies": {
+    "wrangler": "^3"
+  }
+}

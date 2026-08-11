@@ -1,0 +1,109 @@
+:root {
+  --bg-canvas: #FBF3E9;
+  --bg-surface: #FFFFFF;
+  --bg-muted: #F3E8DA;
+  --brand-primary: #FF8A5B;
+  --brand-primary-dark: #E4653A;
+  --brand-secondary: #7FB6A2;
+  --brand-tertiary: #F4C95D;
+  --accent-berry: #C9629B;
+  --accent-sky: #8FB8DE;
+  --text-primary: #3A2E27;
+  --text-secondary: #8A7A6D;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-canvas: #221C18;
+    --bg-surface: #2E2620;
+    --bg-muted: #3A2E27;
+    --text-primary: #F3E8DA;
+    --text-secondary: #C9B8A8;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: -apple-system, "Segoe UI", Inter, sans-serif;
+  background: var(--bg-canvas);
+  color: var(--text-primary);
+}
+
+.pp-header {
+  padding: 20px 16px 8px;
+  text-align: center;
+}
+.pp-logo { margin: 0; font-size: 28px; }
+.pp-tagline { margin: 4px 0 0; color: var(--text-secondary); font-size: 14px; }
+
+.pp-main {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.pp-search { margin-bottom: 12px; }
+
+.pp-input {
+  width: 100%;
+  padding: 14px 18px;
+  border-radius: 16px;
+  border: none;
+  background: var(--bg-surface);
+  box-shadow: 0 1px 2px rgba(0,0,0,.06), 0 8px 24px rgba(58,46,39,.08);
+  font-size: 16px;
+  color: var(--text-primary);
+}
+.pp-input:focus { outline: 2px solid var(--brand-primary); }
+
+.pp-chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+.pp-chip {
+  border: 1px solid var(--bg-muted);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 14px;
+  cursor: pointer;
+}
+.pp-chip.is-active {
+  background: var(--brand-secondary);
+  border-color: var(--brand-secondary);
+  color: #fff;
+}
+
+.pp-map {
+  width: 100%;
+  height: 260px;
+  border-radius: 20px;
+  margin: 16px 0;
+  background: var(--bg-muted);
+}
+
+.pp-results {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+@media (min-width: 600px) {
+  .pp-results { grid-template-columns: 1fr 1fr; }
+}
+
+.pp-card {
+  background: var(--bg-surface);
+  border-radius: 20px;
+  padding: 16px;
+  box-shadow: 0 1px 2px rgba(0,0,0,.06), 0 8px 24px rgba(58,46,39,.08);
+}
+.pp-card h3 { margin: 0 0 6px; font-size: 16px; }
+.pp-card-meta { margin: 0; color: var(--text-secondary); font-size: 14px; }
+
+button { font: inherit; }
+button:active { transform: scale(0.97); }
