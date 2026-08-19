@@ -5,3 +5,7 @@ node_modules/
 .wrangler/
 .dev.vars
 public/js/config.js
+
+# Third-party Claude Code skill data (installed via `npx ui-ux-pro-max-cli
+# init`) — reference CSVs/scripts for design guidance, not part of the app.
+.claude/skills/
