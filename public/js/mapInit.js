@@ -9,7 +9,7 @@ function ensureScriptLoaded() {
     scriptPromise = new Promise((resolve) => {
       window.__ppMapsReady = resolve;
       const script = document.createElement("script");
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${window.CONFIG.MAPS_BROWSER_KEY}&callback=__ppMapsReady`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${window.CONFIG.MAPS_BROWSER_KEY}&loading=async&callback=__ppMapsReady`;
       script.async = true;
       document.head.appendChild(script);
     });

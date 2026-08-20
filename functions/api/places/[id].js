@@ -3,13 +3,18 @@
 // (Section 4.2) — never speculatively for a list of cards.
 import { json } from "../../_lib/http.js";
 import { supabaseFetch } from "../../_lib/supabase.js";
+import { checkRateLimit, rateLimitedResponse } from "../../_lib/rateLimit.js";
 
 const RICH_FIELD_MASK =
   "id,displayName,formattedAddress,regularOpeningHours,editorialSummary,photos,reviews,websiteUri,nationalPhoneNumber,priceLevel";
 const RICH_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 export async function onRequestGet(context) {
-  const { env, params } = context;
+  const { request, env, params } = context;
+
+  const { limited } = await checkRateLimit(env, request, "place-detail", 30);
+  if (limited) return rateLimitedResponse();
+
   const placeId = params.id;
 
   const cached = await getCachedPlace(env, placeId);

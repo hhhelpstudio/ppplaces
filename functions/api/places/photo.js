@@ -7,8 +7,18 @@
 // with a long Cache-Control (photo references are effectively immutable,
 // per PRD Section 4.3's "cache the reference, avoid repeated photo-media
 // billing" guidance).
+import { checkRateLimit, rateLimitedResponse } from "../../_lib/rateLimit.js";
+
 export async function onRequestGet(context) {
   const { request, env } = context;
+
+  // Higher limit than the other endpoints — a single search-results page
+  // naturally fires one photo request per card as thumbnails load, all at
+  // once, so this isn't really a "user action rate" the way search/detail
+  // calls are.
+  const { limited } = await checkRateLimit(env, request, "photo", 180);
+  if (limited) return rateLimitedResponse();
+
   const url = new URL(request.url);
   const ref = url.searchParams.get("ref");
   const maxWidth = url.searchParams.get("maxWidth") || "400";

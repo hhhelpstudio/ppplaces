@@ -6,11 +6,17 @@
 // this is a one-shot lookup at trip creation, not a high-volume surface, so
 // it doesn't get a cache table of its own.
 import { json } from "../_lib/http.js";
+import { checkRateLimit, rateLimitedResponse } from "../_lib/rateLimit.js";
 
 const FIELD_MASK = "places.id,places.displayName,places.location,places.formattedAddress";
 
 export async function onRequestGet(context) {
   const { request, env } = context;
+
+  // Only fires once per trip creation, so a tight limit is plenty.
+  const { limited } = await checkRateLimit(env, request, "geocode", 10);
+  if (limited) return rateLimitedResponse();
+
   const url = new URL(request.url);
   const q = (url.searchParams.get("q") || "").trim();
 

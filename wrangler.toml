@@ -5,3 +5,13 @@ pages_build_output_dir = "public"
 # SUPABASE_SERVICE_ROLE_KEY) are set in the Cloudflare Pages dashboard
 # under Settings -> Environment variables, never committed here.
 # For local dev, copy .dev.vars.example to .dev.vars (gitignored) instead.
+
+# Per-IP rate limiting counters (Section 4.6) for the Google-metered
+# endpoints. This binding drives local `wrangler pages dev` simulation;
+# Cloudflare Pages also needs the same namespace bound to the Production
+# (and Preview) environment from the dashboard under Settings -> Functions
+# -> KV namespace bindings — wrangler.toml alone doesn't wire that up for
+# a deployed Pages project.
+[[kv_namespaces]]
+binding = "RATE_LIMIT"
+id = "3e49a83e09604efa8adbe8ec64ee5243"

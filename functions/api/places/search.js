@@ -7,6 +7,7 @@
 // live access to the docs this session.
 import { json } from "../../_lib/http.js";
 import { supabaseFetch } from "../../_lib/supabase.js";
+import { checkRateLimit, rateLimitedResponse } from "../../_lib/rateLimit.js";
 
 const BASIC_FIELD_MASK =
   "places.id,places.displayName,places.rating,places.userRatingCount,places.primaryType,places.photos,places.location";
@@ -14,6 +15,10 @@ const CACHE_TTL_MS = 20 * 60 * 1000;
 
 export async function onRequestGet(context) {
   const { request, env } = context;
+
+  const { limited } = await checkRateLimit(env, request, "search", 30);
+  if (limited) return rateLimitedResponse();
+
   const url = new URL(request.url);
   const q = (url.searchParams.get("q") || "").trim();
   const type = url.searchParams.get("type") || "";

@@ -14,11 +14,16 @@
 // points essentially never changes, so this gets a long TTL.
 import { json } from "../_lib/http.js";
 import { supabaseFetch } from "../_lib/supabase.js";
+import { checkRateLimit, rateLimitedResponse } from "../_lib/rateLimit.js";
 
 const CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 
 export async function onRequestGet(context) {
   const { request, env } = context;
+
+  const { limited } = await checkRateLimit(env, request, "route", 30);
+  if (limited) return rateLimitedResponse();
+
   const url = new URL(request.url);
   const pointsParam = url.searchParams.get("points") || "";
   const mode = url.searchParams.get("mode") || "walking";
