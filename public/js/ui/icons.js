@@ -24,8 +24,20 @@ const PATHS = {
   "more-horizontal": '<circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>',
   pencil: '<path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3Z"/><path d="M13.5 6.5l3 3"/>',
   trash: '<path d="M4 7h16M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2m-8 0v13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V7"/><path d="M10 11v6M14 11v6"/>',
+  locate: '<circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/>',
+  stamp: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5.5"/><path d="m9.8 12 1.5 1.5 3-3"/>',
+  route: '<circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.5 19H15a3.5 3.5 0 0 0 0-7H9a3.5 3.5 0 0 1 0-7h6.5"/>',
+  sparkle: '<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6.3 6.3l2.2 2.2M15.5 15.5l2.2 2.2M6.3 17.7l2.2-2.2M15.5 8.5l2.2-2.2"/>',
 };
 
+/** @typedef {keyof typeof PATHS} IconName */
+
+/**
+ * Inline SVG markup for an icon. Decorative by default (aria-hidden): pair
+ * it with visible text or an aria-label on the control.
+ * @param {IconName} name
+ * @param {{ size?: number, className?: string }} [options]
+ */
 export function icon(name, { size = 18, className = "" } = {}) {
   const body = PATHS[name];
   if (!body) throw new Error(`Unknown icon: ${name}`);

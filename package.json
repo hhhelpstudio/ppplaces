@@ -1,11 +1,29 @@
 {
   "name": "ppplaces",
   "private": true,
-  "version": "0.0.1",
+  "version": "0.2.0",
+  "description": "A playful, mobile-first trip planner that turns saved places into a walkable day.",
+  "type": "module",
   "scripts": {
-    "dev": "wrangler pages dev public"
+    "dev": "wrangler pages dev public",
+    "test": "node --test \"test/*.test.js\"",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "check": "npm run typecheck && npm run lint && npm test"
   },
   "devDependencies": {
-    "wrangler": "^3"
+    "@eslint/js": "^10.0.1",
+    "@types/google.maps": "^3.66.5",
+    "@types/leaflet": "^1.9.22",
+    "@types/node": "^22.20.5",
+    "@types/sortablejs": "^1.15.9",
+    "eslint": "^10.12.0",
+    "globals": "^17.13.0",
+    "typescript": "^5.9.3",
+    "wrangler": "^4.148.0"
+  },
+  "dependencies": {
+    "leaflet": "^1.9.4",
+    "sortablejs": "^1.15.7"
   }
 }

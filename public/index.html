@@ -2,11 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>ppplaces</title>
-  <meta name="description" content="plan your someday, one spot at a time" />
+  <meta name="description" content="Plan your someday, one spot at a time. Save places by mood, get a walkable day, and collect a stamp at every stop." />
   <meta name="theme-color" content="#FBF3E9" media="(prefers-color-scheme: light)" />
   <meta name="theme-color" content="#221C18" media="(prefers-color-scheme: dark)" />
+  <meta name="color-scheme" content="light dark" />
 
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -15,146 +16,159 @@
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="ppplaces" />
   <meta property="og:title" content="ppplaces" />
-  <meta property="og:description" content="plan your someday, one spot at a time" />
+  <meta property="og:description" content="Plan your someday, one spot at a time." />
   <meta property="og:image" content="https://ppplaces.pages.dev/og-image.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta property="og:url" content="https://ppplaces.pages.dev" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="ppplaces" />
-  <meta name="twitter:description" content="plan your someday, one spot at a time" />
-  <meta name="twitter:image" content="https://ppplaces.pages.dev/og-image.png" />
 
   <script>
-    // Applied synchronously, before first paint, so a stored preference
-    // never flashes the wrong theme on load. Absence of the attribute
-    // falls through to the @media (prefers-color-scheme) default in
-    // styles.css — this only runs when the user has explicitly chosen.
+    // Applied before first paint so a stored theme never flashes the wrong
+    // one. Without a stored choice, styles.css follows the OS setting.
     (function () {
-      var stored = localStorage.getItem("pp-theme");
-      if (stored) document.documentElement.setAttribute("data-theme", stored);
+      try {
+        var stored = localStorage.getItem("pp-theme");
+        if (stored) document.documentElement.setAttribute("data-theme", stored);
+      } catch (e) {}
     })();
   </script>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap"
-    rel="stylesheet"
-  />
-  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="preload" href="/fonts/fredoka-var.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="/fonts/figtree-var.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="modulepreload" href="/js/app.js" />
 </head>
-<body>
+<body aria-busy="true">
+  <a class="pp-skip" href="#main">Skip to content</a>
+
   <header class="pp-header">
     <button id="btn-my-trips" class="pp-header-back" type="button" aria-label="Back to your trips" hidden></button>
+    <div class="pp-brand">
+      <p class="pp-logo">ppplaces</p>
+      <p class="pp-tagline">plan your someday, one spot at a time</p>
+    </div>
     <button id="theme-toggle" class="pp-theme-toggle" type="button" aria-label="Toggle light/dark mode"></button>
-    <h1 class="pp-logo">ppplaces</h1>
-    <p class="pp-tagline">plan your someday, one spot at a time</p>
   </header>
 
-  <main class="pp-main">
-    <!-- Step 9: Return visit / trip list. Also the landing screen once the
-         guest has ≥1 trip (USER_FLOW.md Step 0). -->
-    <section id="view-trips" class="pp-view" hidden>
+  <p id="demo-banner" class="pp-demo-banner" hidden>
+    <strong>Demo mode</strong> · sample places, trips saved in this browser
+  </p>
+
+  <main id="main" class="pp-main" tabindex="-1">
+    <div id="boot-error" class="pp-boot-error" hidden></div>
+
+    <!-- Step 9: return visit / trip list. The landing screen once there's a trip. -->
+    <section id="view-trips" class="pp-view" aria-labelledby="trips-title" hidden>
       <div class="pp-view-head">
-        <h2 class="pp-view-title">Your trips</h2>
-        <button id="btn-new-trip" class="pp-btn pp-btn-primary">+ Start a new trip</button>
+        <h1 id="trips-title" class="pp-view-title">Your trips</h1>
+        <button id="btn-new-trip" class="pp-btn pp-btn-primary" type="button">+ New trip</button>
       </div>
-      <div id="trips-list" class="pp-trip-list"></div>
+      <ul id="trips-list" class="pp-trip-list"></ul>
     </section>
 
-    <!-- Step 1: Start a trip. Landing screen for a true first-time guest. -->
-    <section id="view-start" class="pp-view" hidden>
-      <p class="pp-prompt">Where's this trip taking you?</p>
+    <!-- Step 1: start a trip. The landing screen for a first-time guest. -->
+    <section id="view-start" class="pp-view pp-view--hero" aria-labelledby="start-title" hidden>
+      <div id="start-walkie" class="pp-hero-walkie"></div>
+      <h1 id="start-title" class="pp-prompt">Where's this trip taking you?</h1>
       <div class="pp-option-cards">
         <button class="pp-option-card" data-choice="dream" type="button">
           <span class="pp-option-title">Dreaming about somewhere</span>
-          <span class="pp-option-sub">Type any city, no dates needed</span>
+          <span class="pp-option-sub">Any city, no dates needed</span>
         </button>
         <button class="pp-option-card" data-choice="nearby" type="button">
           <span class="pp-option-title">Right around me</span>
-          <span class="pp-option-sub">We'll use your location</span>
+          <span class="pp-option-sub">Uses your location, just this once</span>
         </button>
       </div>
       <div id="dream-input-wrap" class="pp-dream-input" hidden>
-        <input id="dream-input" class="pp-input" type="text" placeholder="Kyoto, Lisbon, anywhere..." />
+        <label class="pp-sr-only" for="dream-input">City or place</label>
+        <input id="dream-input" class="pp-input" type="text" placeholder="Kyoto, Lisbon, anywhere…" autocomplete="off" enterkeyhint="go" />
         <button id="btn-dream-go" class="pp-btn pp-btn-primary" type="button">Go</button>
       </div>
-      <p id="start-status" class="pp-status" aria-live="polite"></p>
+      <div id="demo-cities" class="pp-demo-cities" hidden>
+        <p class="pp-eyebrow">Or jump into a demo city</p>
+        <div id="demo-city-list" class="pp-chips pp-chips-center"></div>
+      </div>
+      <div id="start-status" class="pp-status"></div>
     </section>
 
-    <!-- Step 2: Pick a mood -->
-    <section id="view-mood" class="pp-view" hidden>
-      <p class="pp-prompt">What are you in the mood for?</p>
+    <!-- Step 2: pick a mood -->
+    <section id="view-mood" class="pp-view pp-view--hero" aria-labelledby="mood-title" hidden>
+      <div id="mood-note"></div>
+      <h1 id="mood-title" class="pp-prompt">What are you in the mood for?</h1>
       <div id="mood-chips" class="pp-chips pp-chips-grid"></div>
-      <a href="#" id="mood-skip" class="pp-skip-link">Skip for now</a>
+      <button id="mood-skip" class="pp-link-btn" type="button">Skip for now</button>
     </section>
 
-    <!-- Step 3: Choose places -->
-    <section id="view-discover" class="pp-view" hidden>
-      <div class="pp-search">
-        <input id="search-input" class="pp-input" type="text" placeholder="Search cafes, museums, parks..." />
-        <div id="category-chips" class="pp-chips"></div>
+    <!-- Step 3: choose places. Two panes on desktop: list left, map right. -->
+    <section id="view-discover" class="pp-view pp-split" aria-label="Find places" hidden>
+      <div class="pp-search pp-split-head">
+        <label class="pp-sr-only" for="search-input">Search places</label>
+        <input id="search-input" class="pp-input" type="search" placeholder="Search cafés, museums, parks…" autocomplete="off" enterkeyhint="search" />
+        <div id="category-chips" class="pp-chips pp-chips-scroll" role="group" aria-label="Moods"></div>
       </div>
 
-      <div class="pp-map-wrap">
-        <div id="map" class="pp-map"></div>
+      <div class="pp-map-wrap pp-split-map">
+        <div id="map" class="pp-map" role="region" aria-label="Map of places"></div>
         <button id="btn-search-area" class="pp-search-area-btn" type="button" hidden>Search this area</button>
       </div>
 
-      <section id="results" class="pp-results" aria-live="polite"></section>
+      <div id="results" class="pp-results pp-split-body" aria-live="polite"></div>
 
-      <button id="view-plan-pill" class="pp-plan-pill" hidden type="button">
-        View plan (<span id="plan-count">0</span>)
+      <button id="view-plan-pill" class="pp-plan-pill" type="button" hidden>
+        View plan <span id="plan-count" class="pp-plan-count">0</span>
       </button>
     </section>
 
-    <!-- Steps 4-7: itinerary plan, optimize, add date, handoff -->
-    <section id="view-plan" class="pp-view" hidden>
-      <div class="pp-plan-title-row">
-        <h2 id="plan-trip-title" class="pp-plan-trip-title"></h2>
-        <button id="btn-trip-menu" class="pp-icon-btn" type="button" aria-label="Trip options"></button>
-      </div>
-
-      <div class="pp-plan-head">
-        <div id="day-tabs" class="pp-day-tabs" hidden></div>
-        <button id="btn-back-discover" class="pp-btn pp-btn-ghost" type="button">+ Add more places</button>
-      </div>
-
-      <div id="plan-map-wrap" class="pp-map-wrap" hidden>
-        <div id="plan-map" class="pp-map"></div>
-      </div>
-
-      <div id="plan-empty" class="pp-empty" hidden>
-        <p>Your day's a blank map — drag in a few spots to get started.</p>
-      </div>
-
-      <ol id="plan-list" class="pp-plan-list"></ol>
-
-      <div class="pp-plan-actions">
-        <a href="#" id="btn-add-day" class="pp-skip-link">+ Add a day</a>
-        <button id="btn-optimize" class="pp-btn pp-btn-primary" type="button" disabled>Optimize my day</button>
-      </div>
-
-      <div id="optimize-preview" class="pp-optimize-preview" hidden>
-        <p id="optimize-summary" class="pp-optimize-summary"></p>
-        <div class="pp-optimize-actions">
-          <button id="btn-optimize-apply" class="pp-btn pp-btn-primary" type="button">Apply</button>
-          <button id="btn-optimize-keep" class="pp-btn pp-btn-ghost" type="button">Keep my order</button>
+    <!-- Steps 4-8: the plan, optimize, dates, check-in, handoff -->
+    <section id="view-plan" class="pp-view pp-split" aria-labelledby="plan-trip-title" hidden>
+      <div class="pp-plan-top pp-split-head">
+        <div class="pp-plan-title-row">
+          <div id="plan-walkie" class="pp-plan-walkie"></div>
+          <h1 id="plan-trip-title" class="pp-plan-trip-title"></h1>
+          <button id="btn-trip-menu" class="pp-icon-btn" type="button" aria-label="Trip options"></button>
         </div>
-        <div id="optimize-suggestions" class="pp-suggestions" hidden></div>
+        <div class="pp-plan-meta">
+          <div id="add-date-wrap" class="pp-add-date"></div>
+          <p id="stamp-progress" class="pp-stamp-progress" hidden></p>
+        </div>
+        <div class="pp-plan-head">
+          <div id="day-tabs" class="pp-day-tabs" role="group" aria-label="Days" hidden></div>
+          <button id="btn-back-discover" class="pp-btn pp-btn-ghost" type="button">+ Add places</button>
+        </div>
       </div>
 
-      <div class="pp-plan-footer">
-        <div id="add-date-wrap" class="pp-add-date">
-          <a href="#" id="add-date-link" class="pp-skip-link">+ Add dates</a>
-          <input id="date-input" type="date" class="pp-date-input" hidden />
+      <div id="plan-map-wrap" class="pp-map-wrap pp-split-map" hidden>
+        <div id="plan-map" class="pp-map" role="region" aria-label="Map of your day"></div>
+      </div>
+
+      <div class="pp-plan-body pp-split-body">
+        <div id="arrival-panel" class="pp-arrival" hidden></div>
+        <div id="plan-empty" class="pp-empty" hidden></div>
+        <ol id="plan-list" class="pp-plan-list" aria-label="Stops"></ol>
+
+        <div class="pp-plan-actions">
+          <button id="btn-add-day" class="pp-link-btn" type="button">+ Add a day</button>
+          <button id="btn-optimize" class="pp-btn pp-btn-primary" type="button" disabled>Optimize my day</button>
         </div>
-        <button id="btn-handoff-day" class="pp-btn pp-btn-secondary" type="button" disabled>Save for when you're ready</button>
+
+        <div id="optimize-preview" class="pp-optimize-preview" hidden>
+          <div id="optimize-summary" class="pp-optimize-summary" aria-live="polite"></div>
+          <div class="pp-optimize-actions">
+            <button id="btn-optimize-apply" class="pp-btn pp-btn-primary" type="button">Apply</button>
+            <button id="btn-optimize-keep" class="pp-btn pp-btn-ghost" type="button">Keep my order</button>
+          </div>
+          <div id="optimize-suggestions" class="pp-suggestions" hidden></div>
+        </div>
+
+        <div class="pp-plan-footer">
+          <button id="btn-handoff-day" class="pp-btn pp-btn-secondary" type="button" disabled>Save for when you're ready</button>
+        </div>
       </div>
     </section>
   </main>
 
-  <div id="handoff-sheet" class="pp-sheet" hidden>
+  <div id="handoff-sheet" class="pp-sheet" role="dialog" aria-modal="true" aria-labelledby="handoff-sheet-title" hidden>
     <div class="pp-sheet-inner">
       <p id="handoff-sheet-title" class="pp-sheet-title"></p>
       <a id="handoff-google" class="pp-btn pp-btn-primary" target="_blank" rel="noopener">Open in Google Maps</a>
@@ -163,7 +177,7 @@
     </div>
   </div>
 
-  <div id="detail-sheet" class="pp-sheet" hidden>
+  <div id="detail-sheet" class="pp-sheet" role="dialog" aria-modal="true" aria-label="Place details" hidden>
     <div class="pp-detail-sheet-inner">
       <div class="pp-detail-header">
         <div id="detail-photo-wrap" class="pp-detail-photo-wrap" hidden>
@@ -176,15 +190,14 @@
     </div>
   </div>
 
-  <div id="trip-options-sheet" class="pp-sheet" hidden>
+  <div id="trip-options-sheet" class="pp-sheet" role="dialog" aria-modal="true" aria-labelledby="trip-options-title" hidden>
     <div class="pp-sheet-inner">
       <p id="trip-options-title" class="pp-sheet-title"></p>
-      <div id="trip-options-body"></div>
+      <div id="trip-options-body" class="pp-sheet-body"></div>
     </div>
   </div>
 
-  <script src="js/config.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
-  <script type="module" src="js/app.js"></script>
+  <script src="/vendor/Sortable.min.js" defer></script>
+  <script type="module" src="/js/app.js"></script>
 </body>
 </html>

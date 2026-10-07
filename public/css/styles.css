@@ -1,687 +1,958 @@
-:root {
-  --bg-canvas: #FBF3E9;
-  --bg-surface: #FFFFFF;
-  --bg-muted: #F3E8DA;
-  /* Back to the PRD's original vibrant coral/sage (not the darkened
-     "safe" versions from the first accessibility pass — those read as
-     muddy/brownish, especially in dark mode, per user feedback after
-     real-device testing). Contrast is instead solved by pairing these
-     bright fills with --on-brand-text (dark charcoal, fixed regardless
-     of theme) instead of white — 5.65:1 / 5.70:1, comfortably AA. */
-  --brand-primary: #FF8A5B;
-  --brand-primary-dark: #E4653A;
-  --brand-secondary: #7FB6A2;
-  --brand-tertiary: #F4C95D;
-  --accent-berry: #C9629B;
-  /* PRD's original #8FB8DE only hit 2.08:1 as link text on white (needs
-     4.5:1) — darkened for light mode; the dark-mode override below keeps
-     the original lighter tone, which already passes fine (7.13:1) against
-     dark surfaces. This one stays a text color, not a filled background,
-     so it doesn't have the same "muddy fill" problem as the buttons did. */
-  --accent-sky: #3E6FA0;
-  /* PRD's original #D9694F ("destructive actions only") only hit 3.45:1
-     as text on white — darkened for light mode, same reasoning as
-     text-secondary/accent-sky above. */
-  --danger: #C1502F;
-  --text-primary: #3A2E27;
-  /* PRD's original #8A7A6D only hit 4.13:1 on white / 3.76:1 on the cream
-     canvas — under the 4.5:1 AA floor the PRD itself requires (Section
-     2.1). Darkened while keeping the same warm-tan hue: 6.14:1 / 5.59:1. */
-  --text-secondary: #6E5F51;
-  /* Fixed dark text/icon color for anything sitting on a brand-color
-     fill (buttons, active chips, badges) — deliberately NOT swapped by
-     the dark-mode override below, since the brand fills themselves don't
-     change between themes either. */
-  --on-brand-text: #2B211B;
-  /* Display: headlines, prompts, day titles, Walkie's voice (Section 2.3).
-     Body: everything functional — place names, addresses, buttons. */
-  --font-display: "Fredoka", -apple-system, "Segoe UI", sans-serif;
-  --font-body: "Inter", -apple-system, "Segoe UI", sans-serif;
+/* ppplaces: warm, playful, map-first. One stylesheet, no build step.
+   Sections: fonts · tokens · base · header · buttons/inputs · start & mood ·
+   discover · plan · arrival · sheets · Walkie · maps · desktop · motion. */
+
+/* ---------------------------------------------------------------- fonts */
+@font-face {
+  font-family: "Fredoka";
+  src: url("/fonts/fredoka-var.woff2") format("woff2");
+  font-weight: 300 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Figtree";
+  src: url("/fonts/figtree-var.woff2") format("woff2");
+  font-weight: 300 900;
+  font-display: swap;
 }
 
-/* System default applies unless the in-app toggle has set data-theme
-   explicitly — :not([data-theme="light"]) lets a forced light choice win
-   even when the system itself is dark. */
+/* --------------------------------------------------------------- tokens */
+:root {
+  color-scheme: light;
+  --bg-canvas: #fbf3e9;
+  --bg-surface: #ffffff;
+  --bg-muted: #f3e8da;
+  --bg-sunken: #efe2d1;
+  --line: #e7d8c6;
+
+  /* Bright brand fills are paired with --on-brand (fixed dark ink), not
+     white: 5.6:1+ contrast without muddying the coral and sage. */
+  --coral: #ff8a5b;
+  --coral-deep: #e4653a;
+  --sage: #7fb6a2;
+  --sage-deep: #5e9c86;
+  --honey: #f4c95d;
+  --berry: #c9629b;
+  --sky: #3e6fa0;
+  --danger: #c1502f;
+  --on-brand: #2b211b;
+
+  --text: #3a2e27;
+  --text-2: #6e5f51;
+
+  --shadow-1: 0 1px 2px rgb(58 46 39 / 0.06), 0 2px 8px rgb(58 46 39 / 0.06);
+  --shadow-2: 0 2px 4px rgb(58 46 39 / 0.06), 0 10px 28px rgb(58 46 39 / 0.12);
+  --ring: 0 0 0 3px var(--bg-canvas), 0 0 0 5px var(--coral-deep);
+
+  --r-sm: 12px;
+  --r-md: 18px;
+  --r-lg: 26px;
+
+  --font-display: "Fredoka", ui-rounded, "Segoe UI", sans-serif;
+  --font-body: "Figtree", system-ui, "Segoe UI", sans-serif;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --header-h: 68px;
+}
+
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg-canvas: #221C18;
-    --bg-surface: #2E2620;
-    --bg-muted: #3A2E27;
-    --text-primary: #F3E8DA;
-    --text-secondary: #C9B8A8;
-    --accent-sky: #8FB8DE;
-    --danger: #E27A62;
+    color-scheme: dark;
+    --bg-canvas: #221c18;
+    --bg-surface: #2e2620;
+    --bg-muted: #3a2e27;
+    --bg-sunken: #1b1613;
+    --line: #463a31;
+    --text: #f3e8da;
+    --text-2: #c9b8a8;
+    --sky: #8fb8de;
+    --danger: #e27a62;
+    --shadow-1: 0 1px 2px rgb(0 0 0 / 0.3);
+    --shadow-2: 0 2px 4px rgb(0 0 0 / 0.25), 0 12px 32px rgb(0 0 0 / 0.35);
   }
 }
-
-/* Forced dark wins regardless of system preference. */
 :root[data-theme="dark"] {
-  --bg-canvas: #221C18;
-  --bg-surface: #2E2620;
-  --bg-muted: #3A2E27;
-  --text-primary: #F3E8DA;
-  --text-secondary: #C9B8A8;
-  --accent-sky: #8FB8DE;
-  --danger: #E27A62;
+  color-scheme: dark;
+  --bg-canvas: #221c18;
+  --bg-surface: #2e2620;
+  --bg-muted: #3a2e27;
+  --bg-sunken: #1b1613;
+  --line: #463a31;
+  --text: #f3e8da;
+  --text-2: #c9b8a8;
+  --sky: #8fb8de;
+  --danger: #e27a62;
+  --shadow-1: 0 1px 2px rgb(0 0 0 / 0.3);
+  --shadow-2: 0 2px 4px rgb(0 0 0 / 0.25), 0 12px 32px rgb(0 0 0 / 0.35);
 }
 
-* { box-sizing: border-box; }
+/* ----------------------------------------------------------------- base */
+*, *::before, *::after { box-sizing: border-box; }
 
-/* Author rules that set `display` (e.g. .pp-chip { display: flex }) otherwise
-   silently beat the UA stylesheet's [hidden] { display: none }, since author
-   styles always outrank UA styles at equal specificity — so anything with
-   both a `hidden` attribute and a class that sets `display` would stay
-   visible. This keeps `hidden` authoritative everywhere. */
+/* Author `display` rules would otherwise beat the UA's [hidden]. */
 [hidden] { display: none !important; }
+
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  min-height: 100dvh;
+  font: 400 16px/1.5 var(--font-body);
+  background: var(--bg-canvas);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+h1, h2, h3 { font-family: var(--font-display); font-weight: 600; line-height: 1.15; margin: 0; text-wrap: balance; }
+p { margin: 0; text-wrap: pretty; }
+img { display: block; max-width: 100%; }
+button { font: inherit; color: inherit; }
+a { color: var(--sky); }
+
+:focus-visible { outline: none; box-shadow: var(--ring); border-radius: var(--r-sm); }
 
 .pp-icon { display: inline-block; vertical-align: -3px; flex-shrink: 0; }
 
-body {
-  margin: 0;
-  font-family: var(--font-body);
-  background: var(--bg-canvas);
-  color: var(--text-primary);
+.pp-sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
 }
+.pp-skip {
+  position: absolute; left: 12px; top: -48px; z-index: 50;
+  padding: 10px 14px; border-radius: var(--r-sm);
+  background: var(--on-brand); color: #fff; text-decoration: none; font-weight: 600;
+}
+.pp-skip:focus { top: 12px; }
 
+/* --------------------------------------------------------------- header */
 .pp-header {
-  position: relative;
-  padding: 18px 16px 10px;
-  text-align: center;
-}
-.pp-logo { margin: 0; font-size: 26px; font-family: var(--font-display); font-weight: 600; }
-.pp-tagline { margin: 4px 0 0; color: var(--text-secondary); font-size: 15px; }
-/* Once the user is inside a trip (the "My trips" back-link is showing),
-   the tagline is redundant chrome repeated on every screen of a deep,
-   multi-step mobile flow — dropping it gives real content more room
-   above the fold, which was part of the "feels cramped" feedback. */
-.pp-header:has(#btn-my-trips:not([hidden])) .pp-tagline { display: none; }
-.pp-header:has(#btn-my-trips:not([hidden])) { padding-bottom: 4px; }
-
-/* Symmetric header corners: back button top-left, theme toggle top-right
-   — replaces a plain text link that used to float above the logo (read as
-   a stray line of text, not a navigation control). */
-.pp-theme-toggle,
-.pp-header-back {
-  position: absolute;
-  top: 12px;
-  width: 42px;
-  height: 42px;
-  display: flex;
+  display: grid;
+  grid-template-columns: 44px 1fr 44px;
   align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  border: none;
-  background: var(--bg-surface);
-  color: var(--text-primary);
-  box-shadow: 0 1px 2px rgba(0,0,0,.06), 0 4px 12px rgba(58,46,39,.1);
-  cursor: pointer;
+  gap: 12px;
+  min-height: var(--header-h);
+  padding: 12px 16px 8px;
+  max-width: 1320px;
+  margin: 0 auto;
 }
-.pp-theme-toggle { right: 16px; }
-.pp-header-back { left: 16px; }
+.pp-header-back { grid-column: 1; }
+.pp-brand { grid-column: 2; text-align: center; }
+.pp-theme-toggle { grid-column: 3; }
+.pp-logo { font: 600 26px/1 var(--font-display); letter-spacing: -0.01em; }
+.pp-logo::first-letter { color: var(--coral-deep); }
+.pp-tagline { margin-top: 4px; color: var(--text-2); font-size: 14px; }
+/* Inside a trip the tagline is repeated chrome: give the content the room. */
+.pp-header:has(#btn-my-trips:not([hidden])) .pp-tagline { display: none; }
+
+.pp-theme-toggle,
+.pp-header-back,
+.pp-icon-btn {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 0;
+  background: var(--bg-surface);
+  color: var(--text);
+  box-shadow: var(--shadow-1);
+  cursor: pointer;
+  transition: transform 160ms var(--ease-out), box-shadow 160ms;
+}
+.pp-theme-toggle:hover, .pp-header-back:hover, .pp-icon-btn:hover { box-shadow: var(--shadow-2); }
+.pp-theme-toggle:active, .pp-header-back:active, .pp-icon-btn:active { transform: scale(0.94); }
+.pp-theme-toggle:focus-visible, .pp-header-back:focus-visible, .pp-icon-btn:focus-visible { border-radius: 50%; }
+
+.pp-demo-banner {
+  max-width: 600px;
+  margin: 0 auto 4px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--honey) 28%, var(--bg-canvas));
+  color: var(--text);
+  font-size: 13px;
+  text-align: center;
+  width: fit-content;
+  max-inline-size: calc(100% - 32px);
+}
 
 .pp-main {
-  max-width: 720px;
+  max-width: 600px;
   margin: 0 auto;
-  padding: 16px 16px 32px;
+  padding: 12px 16px calc(40px + env(safe-area-inset-bottom));
 }
+.pp-main:focus { outline: none; }
+.pp-boot-error { padding-top: 48px; }
 
-.pp-search { margin-bottom: 12px; }
+/* ----------------------------------------------------- buttons & inputs */
+.pp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 12px 20px;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  font: 600 15px/1.2 var(--font-body);
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 160ms var(--ease-out), background-color 160ms, box-shadow 160ms, border-color 160ms;
+}
+.pp-btn:active:not(:disabled) { transform: scale(0.97); }
+.pp-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.pp-btn:focus-visible { border-radius: 999px; }
+.pp-btn-primary {
+  background: var(--coral);
+  color: var(--on-brand);
+  box-shadow: 0 3px 0 var(--coral-deep);
+}
+.pp-btn-primary:hover:not(:disabled) { background: color-mix(in oklab, var(--coral) 88%, white); }
+.pp-btn-primary:active:not(:disabled) { box-shadow: 0 1px 0 var(--coral-deep); transform: translateY(2px); }
+.pp-btn-secondary { background: var(--sage); color: var(--on-brand); box-shadow: 0 3px 0 var(--sage-deep); }
+.pp-btn-outline { background: var(--bg-surface); color: var(--text); border-color: var(--line); }
+.pp-btn-outline:hover:not(:disabled) { border-color: var(--text-2); }
+.pp-btn-ghost { background: transparent; color: var(--text); }
+.pp-btn-ghost:hover:not(:disabled) { background: var(--bg-muted); }
+.pp-btn-danger { color: var(--danger); }
+
+.pp-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 8px 4px;
+  border: 0;
+  background: none;
+  color: var(--text-2);
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in oklab, currentColor 35%, transparent);
+  text-underline-offset: 4px;
+}
+.pp-link-btn:hover { color: var(--text); }
 
 .pp-input {
   width: 100%;
-  padding: 14px 18px;
-  border-radius: 16px;
+  min-height: 50px;
+  padding: 12px 18px;
+  border-radius: 999px;
+  border: 2px solid var(--line);
+  background: var(--bg-surface);
+  color: var(--text);
+  font: 500 16px var(--font-body);
+  transition: border-color 160ms, box-shadow 160ms;
+}
+.pp-input::placeholder { color: color-mix(in oklab, var(--text-2) 80%, transparent); }
+.pp-input:focus { outline: none; border-color: var(--coral); box-shadow: 0 0 0 4px color-mix(in oklab, var(--coral) 22%, transparent); }
+
+.pp-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.pp-chips-center { justify-content: center; }
+.pp-chips-scroll {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin-inline: -16px;
+  padding: 4px 16px 6px;
+  scroll-padding-inline: 16px;
+}
+.pp-chips-scroll::-webkit-scrollbar { display: none; }
+.pp-chip {
+  --chip: var(--bg-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 16px;
+  border-radius: 999px;
   border: 2px solid transparent;
   background: var(--bg-surface);
-  box-shadow: inset 0 1px 3px rgba(58,46,39,.12);
-  font-size: 16px;
-  color: var(--text-primary);
-  transition: border-color 150ms ease;
-}
-.pp-input:focus { outline: none; border-color: var(--brand-primary); }
-.pp-input::placeholder { color: var(--text-secondary); opacity: 1; }
-
-.pp-chips {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-top: 12px;
-}
-.pp-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  border: 1px solid var(--bg-muted);
-  background: var(--bg-surface);
-  color: var(--text-primary);
-  padding: 11px 18px;
-  min-height: 44px;
-  border-radius: 999px;
+  color: var(--text);
+  box-shadow: var(--shadow-1);
+  font-weight: 600;
   font-size: 15px;
+  white-space: nowrap;
   cursor: pointer;
-  transition: transform 150ms ease;
+  transition: transform 160ms var(--ease-out), background-color 160ms, border-color 160ms;
 }
-.pp-chip.is-active {
-  background: var(--brand-secondary);
-  border-color: var(--brand-secondary);
-  color: var(--on-brand-text);
-  font-weight: 600;
-  animation: pp-chip-bounce 320ms ease;
-}
-@keyframes pp-chip-bounce {
-  0% { transform: scale(1); }
-  45% { transform: scale(1.12); }
-  100% { transform: scale(1); }
-}
+.pp-chip .pp-icon { color: color-mix(in oklab, var(--chip) 70%, var(--text)); }
+.pp-chip:hover { border-color: var(--chip); }
+.pp-chip:active { transform: scale(0.96); }
+.pp-chip:focus-visible { border-radius: 999px; }
+.pp-chip.is-active { background: var(--chip); color: var(--on-brand); border-color: var(--chip); }
+.pp-chip.is-active .pp-icon { color: var(--on-brand); }
+.pp-chip--cafe { --chip: #e0a46a; }
+.pp-chip--restaurant { --chip: var(--coral); }
+.pp-chip--tourist_attraction { --chip: #d58bb8; }
+.pp-chip--park { --chip: var(--sage); }
+.pp-chip--night_club { --chip: #9d93d8; }
+.pp-chip--shopping_mall { --chip: var(--honey); }
 
-.pp-map-wrap { position: relative; margin: 16px 0; }
-.pp-map {
-  width: 100%;
-  height: 220px;
-  border-radius: 20px;
-  background: var(--bg-muted);
-}
-@media (min-width: 768px) {
-  .pp-map { height: 320px; }
-}
-.pp-search-area-btn {
-  position: absolute;
-  top: 12px;
-  left: 50%;
-  transform: translateX(-50%);
-  border: none;
-  border-radius: 999px;
-  background: var(--bg-surface);
-  color: var(--text-primary);
-  padding: 10px 18px;
-  font-size: 14px;
-  font-weight: 600;
-  box-shadow: 0 2px 8px rgba(58,46,39,.25);
-  cursor: pointer;
-}
-
-.pp-results {
+/* -------------------------------------------------------- start & mood */
+.pp-view--hero { text-align: center; padding-top: 12px; }
+.pp-hero-walkie { display: grid; place-items: center; margin-bottom: 8px; }
+.pp-prompt { font-size: clamp(26px, 6vw, 34px); margin-bottom: 22px; }
+.pp-option-cards { display: grid; gap: 12px; text-align: left; }
+.pp-option-card {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
-}
-@media (min-width: 600px) {
-  .pp-results { grid-template-columns: 1fr 1fr; }
-}
-
-.pp-card {
+  gap: 4px;
+  padding: 20px 22px;
+  border-radius: var(--r-lg);
+  border: 2px solid var(--line);
   background: var(--bg-surface);
-  border-radius: 20px;
-  padding: 18px;
-  box-shadow: 0 1px 2px rgba(0,0,0,.06), 0 8px 24px rgba(58,46,39,.08);
+  box-shadow: var(--shadow-1);
   cursor: pointer;
+  transition: transform 200ms var(--ease-out), border-color 200ms, box-shadow 200ms;
 }
-/* Photo bleeds to the card edges via negative margin, keeping the same
-   18px padding for the text content below it. */
-.pp-card-photo-wrap {
-  margin: -18px -18px 12px;
-  border-radius: 20px 20px 0 0;
-  overflow: hidden;
-  height: 140px;
-  background: var(--bg-muted);
+.pp-option-card:hover { border-color: var(--coral); box-shadow: var(--shadow-2); transform: translateY(-2px); }
+.pp-option-card:focus-visible { border-radius: var(--r-lg); }
+.pp-option-title { font: 600 19px var(--font-display); }
+.pp-option-sub { color: var(--text-2); font-size: 14px; }
+.pp-dream-input { display: flex; gap: 8px; margin-top: 14px; }
+.pp-dream-input .pp-btn { flex: none; }
+.pp-demo-cities { margin-top: 26px; }
+.pp-eyebrow {
+  margin-bottom: 10px;
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
-.pp-card-photo { width: 100%; height: 100%; object-fit: cover; display: block; }
-.pp-card h3 { margin: 0 0 6px; font-size: 17px; }
-.pp-card-meta { margin: 0; color: var(--text-secondary); font-size: 15px; }
+.pp-status { margin-top: 20px; }
+.pp-status:empty { display: none; }
+.pp-status .pp-walkie-say, #mood-note .pp-walkie-say { justify-content: center; }
 
-/* Tactile press feedback on tap — no hover/lift (removed: on touch
-   screens :hover triggers on tap and then sticks until the next tap
-   elsewhere, which read as a stuck, glitchy card rather than a helpful
-   affordance). :active releases the instant the finger lifts, so it
-   can't get stuck the same way. */
-.pp-card,
-.pp-trip-card-main,
-.pp-option-card,
-.pp-stop-card {
-  transition: transform 100ms ease;
+.pp-chips-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
+.pp-chips-grid .pp-chip { justify-content: flex-start; min-height: 60px; border-radius: var(--r-md); padding-inline: 18px; }
+.pp-chips-grid .pp-chip .pp-icon {
+  width: 32px; height: 32px; padding: 7px; border-radius: 50%;
+  background: color-mix(in oklab, var(--chip) 30%, transparent); color: var(--text);
 }
-.pp-card:active,
-.pp-stop-card:active {
-  transform: scale(0.98);
-}
-
-button { font: inherit; }
-button:active { transform: scale(0.97); }
-
-/* ---- Buttons ---- */
-.pp-btn {
-  border: none;
+.pp-demo-note {
+  margin: 0 auto 16px;
+  padding: 8px 14px;
+  width: fit-content;
   border-radius: 999px;
-  padding: 14px 24px;
-  min-height: 48px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  text-align: center;
-  box-shadow: 0 2px 6px rgba(58,46,39,.18);
-  transition: box-shadow 100ms ease, opacity 100ms ease;
+  background: var(--bg-muted);
+  color: var(--text-2);
+  font-size: 14px;
 }
-.pp-btn:active { box-shadow: 0 1px 2px rgba(58,46,39,.18); }
-.pp-btn-primary { background: var(--brand-primary); color: var(--on-brand-text); }
-.pp-btn-secondary { background: var(--brand-secondary); color: var(--on-brand-text); }
-.pp-btn-ghost { background: transparent; color: var(--text-primary); border: 1px solid var(--bg-muted); box-shadow: none; }
-/* A clearly-bordered, unmistakably-clickable secondary style — .pp-btn-ghost's
-   border is nearly invisible against the surface, which reads as "disabled"
-   more than "tappable." Used where two options need equal weight but must
-   still look pressable (e.g. Google Maps / Apple Maps side by side). */
-.pp-btn-outline { background: var(--bg-surface); color: var(--text-primary); border: 2px solid var(--text-secondary); box-shadow: none; }
-.pp-btn-outline:active { background: var(--bg-muted); }
-/* Destructive actions only (PRD Section 2.2). Outline, not filled — a
-   solid fill needs a single text color that passes contrast in both
-   light and dark mode simultaneously, which this hue can't do (white
-   clears light mode but fails dark; the dark charcoal token is the
-   reverse) — easier to sidestep than chase, and a red outline/text
-   reads seriously enough without needing a heavy fill. */
-.pp-btn-danger { border-color: var(--danger); color: var(--danger); }
-/* Disabled: dim the button's own colors via opacity instead of swapping
-   to a muted neutral fill — a muted-on-muted swap made these nearly
-   invisible against a dark canvas (real bug found in phone testing).
-   Opacity preserves the fill/text contrast ratio to each other, so the
-   pill shape stays legible as "a button, just not tappable yet". */
-.pp-btn:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
 
-/* ---- View sections ---- */
-.pp-view-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-}
-.pp-view-title { margin: 0; font-size: 21px; font-family: var(--font-display); font-weight: 600; }
-.pp-prompt { text-align: center; font-size: 20px; font-weight: 600; margin: 8px 0 24px; font-family: var(--font-display); }
-.pp-status { text-align: center; color: var(--text-secondary); min-height: 20px; margin-top: 12px; font-size: 15px; }
-
-/* ---- Step 9: trip list ---- */
-.pp-trip-list { display: flex; flex-direction: column; gap: 12px; }
-/* Wrapper (not itself clickable) holding the "open trip" button and the
-   options kebab side by side — a <button> can't nest another <button>,
-   which is why this isn't one button anymore now that it has two
-   independent actions. */
+/* ------------------------------------------------------------- trips */
+.pp-view-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+.pp-view-title { font-size: 28px; }
+.pp-view-head .pp-btn { min-height: 44px; padding-block: 8px; }
+.pp-trip-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
 .pp-trip-card {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
+  padding: 6px 8px 6px 6px;
+  border-radius: var(--r-md);
   background: var(--bg-surface);
-  border-radius: 20px;
-  padding: 10px 10px 10px 18px;
-  box-shadow: 0 1px 2px rgba(0,0,0,.06), 0 8px 24px rgba(58,46,39,.08);
+  box-shadow: var(--shadow-1);
+  animation: pp-rise 420ms var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 50ms);
 }
 .pp-trip-card-main {
   flex: 1;
   min-width: 0;
-  display: flex;
-  flex-direction: column;
-  border: none;
+  display: grid;
+  gap: 2px;
+  padding: 12px 14px;
+  border: 0;
+  border-radius: var(--r-sm);
   background: none;
-  cursor: pointer;
-  font: inherit;
-  color: inherit;
   text-align: left;
-  padding: 8px 0;
-}
-.pp-trip-card-title { margin: 0 0 4px; font-size: 17px; }
-.pp-trip-card-meta { display: flex; align-items: center; gap: 6px; font-size: 14px; color: var(--text-secondary); }
-.pp-mode-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-.pp-mode-dot.dream { background: var(--brand-tertiary); }
-.pp-mode-dot.planning { background: var(--brand-secondary); }
-
-/* Generic round icon-only button — kebab menus, etc. */
-.pp-icon-btn {
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border: none;
-  background: none;
-  color: var(--text-secondary);
-  border-radius: 50%;
   cursor: pointer;
 }
-.pp-icon-btn:active { background: var(--bg-muted); }
+.pp-trip-card-main:hover { background: var(--bg-muted); }
+.pp-trip-card-title { font: 600 19px var(--font-display); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pp-trip-card-meta { display: flex; align-items: center; gap: 8px; color: var(--text-2); font-size: 14px; }
+.pp-trip-card .pp-icon-btn { box-shadow: none; background: transparent; }
+.pp-trip-card .pp-icon-btn:hover { background: var(--bg-muted); }
+.pp-mode-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+.pp-mode-dot.dream { background: var(--honey); }
+.pp-mode-dot.planning { background: var(--sage); }
 
-.pp-plan-title-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 16px; }
-.pp-plan-trip-title { margin: 0; font-size: 19px; font-family: var(--font-display); font-weight: 600; }
+/* ------------------------------------------------------------- discover */
+.pp-split { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-areas: "head" "map" "body"; gap: 14px; }
+.pp-split-head { grid-area: head; min-width: 0; }
+.pp-split-map { grid-area: map; min-width: 0; }
+.pp-split-body { grid-area: body; min-width: 0; }
 
-/* ---- Step 1: start a trip ---- */
-.pp-option-cards { display: flex; flex-direction: column; gap: 12px; }
-.pp-option-card {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  text-align: left;
-  padding: 22px;
-  border: none;
-  border-radius: 24px;
-  background: var(--bg-surface);
-  box-shadow: 0 1px 2px rgba(0,0,0,.06), 0 8px 24px rgba(58,46,39,.08);
-  cursor: pointer;
+.pp-search { display: grid; gap: 10px; }
+
+.pp-map-wrap {
+  position: relative;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  background: var(--bg-sunken);
+  box-shadow: var(--shadow-1);
+  isolation: isolate;
 }
-.pp-option-title { font-size: 18px; font-weight: 600; font-family: var(--font-display); }
-.pp-option-sub { font-size: 15px; color: var(--text-secondary); }
-.pp-dream-input { display: flex; gap: 8px; margin-top: 16px; }
-.pp-dream-input .pp-input { flex: 1; }
-
-/* ---- Step 2: mood chips ---- */
-.pp-chips-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0 0 24px; }
-.pp-chips-grid .pp-chip { justify-content: center; padding: 14px 10px; }
-.pp-skip-link {
-  display: block;
-  text-align: center;
-  color: var(--text-secondary);
-  font-size: 15px;
-  text-decoration: underline;
-  padding: 8px 0;
-  margin-top: 4px;
-}
-button.pp-skip-link { border: none; background: none; cursor: pointer; font: inherit; width: 100%; }
-
-/* ---- Step 3: discovery ---- */
-.pp-plan-pill {
-  position: fixed;
+.pp-map { height: 260px; width: 100%; }
+#plan-map { height: 230px; }
+.pp-search-area-btn {
+  position: absolute;
+  top: 12px;
   left: 50%;
-  bottom: 20px;
-  transform: translateX(-50%);
-  background: var(--brand-primary);
-  color: var(--on-brand-text);
-  border: none;
+  translate: -50% 0;
+  z-index: 500;
+  min-height: 40px;
+  padding: 8px 16px;
+  border: 0;
   border-radius: 999px;
-  padding: 13px 26px;
-  min-height: 46px;
-  font-weight: 600;
-  font-size: 15px;
-  box-shadow: 0 4px 16px rgba(58,46,39,.25);
+  background: var(--bg-surface);
+  color: var(--text);
+  font-weight: 700;
+  font-size: 14px;
+  box-shadow: var(--shadow-2);
   cursor: pointer;
-  z-index: 20;
+  animation: pp-drop 320ms var(--ease-spring) both;
 }
+
+.pp-results {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+  transition: opacity 200ms;
+}
+.pp-results[aria-busy="true"] { opacity: 0.55; }
+.pp-results > .pp-walkie-say { grid-column: 1 / -1; padding: 24px 0; justify-content: center; }
+
+.pp-card {
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--r-md);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-1);
+  overflow: hidden;
+  animation: pp-rise 420ms var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 40ms);
+  transition: box-shadow 200ms, transform 200ms var(--ease-out);
+}
+.pp-card:hover { box-shadow: var(--shadow-2); transform: translateY(-2px); }
+.pp-card-open {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+.pp-card-open:focus-visible { border-radius: var(--r-md) var(--r-md) 0 0; }
+.pp-card-photo-wrap { display: block; aspect-ratio: 4 / 3; background: var(--bg-muted); overflow: hidden; }
+.pp-card-photo { width: 100%; height: 100%; object-fit: cover; }
+.pp-card-text { display: grid; gap: 2px; padding: 10px 12px 4px; }
+.pp-card-title { font-weight: 700; font-size: 15px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.pp-card-meta { color: var(--text-2); font-size: 13px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
 .pp-card-save {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  margin-top: 10px;
-  border: none;
-  background: var(--bg-muted);
-  color: var(--text-primary);
-  border-radius: 999px;
-  padding: 10px 18px;
   min-height: 40px;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-}
-.pp-card-save.is-saved { background: var(--brand-secondary); color: var(--on-brand-text); }
-
-/* ---- Steps 4-7: itinerary plan ---- */
-.pp-plan-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
-/* overflow-x: auto on this row implicitly forces overflow-y to "auto" too
-   (CSS spec: an explicit non-visible overflow-x pairs with an implicit
-   overflow-y otherwise left "visible") — anything positioned outside a
-   tab's own box would get clipped, so the delete badge below sits fully
-   inside its tab's padding rather than hanging off the edge. */
-.pp-day-tabs { display: flex; gap: 8px; overflow-x: auto; }
-.pp-day-tab-wrap { position: relative; flex: 0 0 auto; }
-.pp-day-tab {
-  border: 1px solid var(--bg-muted);
-  background: var(--bg-surface);
-  color: var(--text-primary);
-  padding: 10px 34px 10px 18px;
-  min-height: 40px;
+  margin: 8px 10px 10px;
   border-radius: 999px;
-  font-size: 15px;
-  font-family: var(--font-display);
-  font-weight: 600;
-  cursor: pointer;
-}
-.pp-day-tab.is-active { background: var(--brand-secondary); border-color: var(--brand-secondary); color: var(--on-brand-text); }
-.pp-day-tab-delete {
-  position: absolute;
-  top: 50%;
-  right: 8px;
-  transform: translateY(-50%);
-  width: 18px;
-  height: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  border-radius: 50%;
-  background: rgba(0,0,0,.14);
-  color: inherit;
-  cursor: pointer;
-}
-.pp-empty { text-align: center; color: var(--text-secondary); font-size: 15px; padding: 40px 16px; }
-
-/* A visible gap (not just no-margin stacking) both reads clearer and
-   gives drag-and-drop room to show where a card will land, plus more
-   forgiving tap targets between adjacent cards. */
-.pp-plan-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
-.pp-stop-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+  border: 2px solid var(--line);
   background: var(--bg-surface);
-  border-radius: 20px;
-  padding: 14px 16px;
-  box-shadow: 0 1px 2px rgba(0,0,0,.06), 0 8px 24px rgba(58,46,39,.08);
-  cursor: pointer;
-}
-/* The badge deliberately hangs slightly off the thumbnail's edge, so it
-   can't live inside the same element that clips the photo to its rounded
-   corners — overflow:hidden there was cropping the badge along with it.
-   Wrap (unclipped, positions the badge) > thumb (clipped, holds the photo). */
-.pp-stop-thumb-wrap { position: relative; flex: 0 0 auto; width: 52px; height: 52px; }
-.pp-stop-thumb {
-  width: 52px;
-  height: 52px;
-  border-radius: 16px;
-  overflow: hidden;
-  background: var(--bg-muted);
-}
-.pp-stop-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: inherit; }
-.pp-stop-thumb-badge {
-  position: absolute;
-  bottom: -4px;
-  right: -4px;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: var(--brand-primary);
-  color: var(--on-brand-text);
-  font-size: 11px;
+  color: var(--text);
   font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid var(--bg-surface);
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 160ms, border-color 160ms, transform 160ms var(--ease-out);
 }
-.pp-stop-num {
-  flex: 0 0 auto;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background: var(--brand-primary);
-  color: var(--on-brand-text);
-  display: flex;
+.pp-card-save:hover { border-color: var(--coral); }
+.pp-card-save:focus-visible { border-radius: 999px; }
+.pp-card-save.is-saved,
+#detail-save.is-saved { background: var(--sage); border-color: var(--sage); color: var(--on-brand); box-shadow: none; }
+.is-collected { animation: pp-pop 420ms var(--ease-spring); }
+
+/* Illustrated tile for photo-less places, tinted by mood. */
+.pp-art {
+  --art: var(--coral);
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  color: color-mix(in oklab, var(--art) 55%, var(--on-brand));
+  background:
+    radial-gradient(circle at 78% 22%, color-mix(in oklab, var(--art) 40%, transparent) 0 18%, transparent 19%),
+    radial-gradient(circle at 18% 88%, color-mix(in oklab, var(--art) 30%, transparent) 0 24%, transparent 25%),
+    color-mix(in oklab, var(--art) 22%, var(--bg-surface));
+}
+.pp-art--cafe { --art: #e0a46a; }
+.pp-art--restaurant { --art: var(--coral); }
+.pp-art--tourist_attraction { --art: #d58bb8; }
+.pp-art--park { --art: var(--sage); }
+.pp-art--night_club { --art: #9d93d8; }
+.pp-art--shopping_mall { --art: var(--honey); }
+
+.pp-plan-pill {
+  position: fixed;
+  left: 50%;
+  bottom: calc(18px + env(safe-area-inset-bottom));
+  translate: -50% 0;
+  z-index: 600;
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 10px 12px 10px 22px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--on-brand);
+  color: #fff;
+  font-weight: 700;
+  font-size: 16px;
+  box-shadow: 0 10px 30px rgb(43 33 27 / 0.35);
+  cursor: pointer;
+  animation: pp-drop 360ms var(--ease-spring) both;
+}
+.pp-plan-pill:focus-visible { border-radius: 999px; }
+.pp-plan-count {
+  min-width: 30px;
+  height: 30px;
+  padding: 0 8px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--coral);
+  color: var(--on-brand);
+}
+#view-discover { padding-bottom: 72px; }
+
+/* ----------------------------------------------------------------- plan */
+.pp-plan-top { display: grid; gap: 10px; }
+.pp-plan-title-row { display: flex; align-items: center; gap: 10px; }
+.pp-plan-walkie { flex: none; display: grid; }
+.pp-plan-trip-title { flex: 1; min-width: 0; font-size: 28px; overflow-wrap: anywhere; }
+.pp-plan-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; }
+.pp-stamp-progress {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--honey) 30%, var(--bg-canvas));
   font-weight: 700;
   font-size: 14px;
 }
-.pp-stop-info { flex: 1; min-width: 0; }
-.pp-stop-info h4 { margin: 0 0 2px; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.pp-stop-meta { margin: 0; font-size: 14px; color: var(--text-secondary); }
-.pp-stop-move-group { display: flex; flex-direction: column; gap: 4px; flex: 0 0 auto; }
-.pp-stop-move-btn {
-  width: 34px;
-  height: 34px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  border: none;
-  background: var(--bg-muted);
-  color: var(--text-primary);
+.pp-stamp-progress.is-complete { background: var(--sage); color: var(--on-brand); }
+.pp-date-input {
+  min-height: 44px;
+  padding: 6px 12px;
+  border-radius: var(--r-sm);
+  border: 2px solid var(--line);
+  background: var(--bg-surface);
+  color: var(--text);
+  font: inherit;
+}
+.pp-add-date { display: flex; align-items: center; gap: 8px; }
+
+.pp-plan-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.pp-plan-head .pp-btn { flex: none; min-height: 44px; padding: 8px 14px; }
+.pp-day-tabs[hidden] + .pp-btn { margin-inline-start: -14px; }
+.pp-day-tabs { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding: 4px 2px; }
+.pp-day-tab-wrap { position: relative; flex: none; }
+.pp-day-tab {
+  min-height: 40px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 2px solid var(--line);
+  background: var(--bg-surface);
+  font-weight: 700;
+  font-size: 14px;
   cursor: pointer;
 }
-.pp-stop-move-btn:disabled { opacity: .35; cursor: not-allowed; }
-.pp-stop-remove {
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  background: var(--bg-muted);
-  color: var(--text-primary);
-  width: 40px;
-  height: 40px;
+.pp-day-tab.is-active { background: var(--on-brand); border-color: var(--on-brand); color: #fff; }
+.pp-day-tab-delete {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 2px solid var(--bg-canvas);
   border-radius: 50%;
+  background: var(--bg-muted);
+  color: var(--text-2);
   cursor: pointer;
 }
-.sortable-ghost .pp-stop-card { border: 2px dashed var(--brand-primary); opacity: .6; }
+/* 22px is visual only; the hit area is extended to 34px. */
+.pp-day-tab-delete::after { content: ""; position: absolute; inset: -6px; }
 
-.pp-plan-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; gap: 12px; flex-wrap: wrap; }
-.pp-optimize-preview { margin-top: 16px; background: var(--bg-muted); border-radius: 20px; padding: 18px; }
-.pp-optimize-summary { margin: 0 0 12px; font-weight: 600; font-size: 15px; }
-.pp-optimize-actions { display: flex; gap: 12px; }
+.pp-plan-body { display: grid; gap: 14px; align-content: start; }
+.pp-empty { padding: 20px 0; }
+.pp-empty .pp-walkie-say { justify-content: center; }
 
-.pp-suggestions { margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(0,0,0,.08); display: flex; flex-direction: column; gap: 10px; }
-.pp-suggestions-title { margin: 0; font-size: 14px; font-weight: 600; color: var(--text-secondary); }
-.pp-suggestion-card { display: flex; align-items: center; gap: 10px; background: var(--bg-surface); border-radius: 16px; padding: 10px; }
-.pp-suggestion-photo { width: 44px; height: 44px; border-radius: 12px; object-fit: cover; flex: 0 0 auto; display: block; }
-.pp-suggestion-photo-empty { display: flex; align-items: center; justify-content: center; background: var(--bg-muted); color: var(--text-secondary); }
-.pp-suggestion-info { flex: 1; min-width: 0; }
-.pp-suggestion-mood { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .02em; }
-.pp-suggestion-info h5 { margin: 2px 0; font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.pp-suggestion-card .pp-card-save { margin-top: 0; flex: 0 0 auto; }
-.pp-plan-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 28px; gap: 12px; flex-wrap: wrap; }
-.pp-add-date { display: flex; flex-direction: column; gap: 6px; }
-.pp-add-date .pp-skip-link { margin: 0; text-align: left; padding: 0; }
-.pp-date-input { padding: 12px 14px; min-height: 44px; border-radius: 12px; border: 1px solid var(--bg-muted); font-size: 16px; background: var(--bg-surface); color: var(--text-primary); }
+/* The stop list is drawn as a trail: a dashed line joins the badges. */
+.pp-plan-list { list-style: none; margin: 0; padding: 0; display: grid; }
+.pp-plan-list:empty { display: none; }
+.pp-stop { position: relative; padding-bottom: 10px; }
+.pp-stop:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  left: 33px;
+  top: 40px;
+  bottom: -30px;
+  border-left: 3px dashed color-mix(in oklab, var(--sage) 70%, transparent);
+  z-index: 0;
+}
+.pp-leg {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 8px 54px;
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 600;
+}
+.pp-stop-card {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px;
+  border-radius: var(--r-md);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-1);
+  cursor: grab;
+  touch-action: pan-y;
+}
+.pp-stop.sortable-ghost .pp-stop-card { opacity: 0.4; }
+.pp-stop.sortable-chosen .pp-stop-card { box-shadow: var(--shadow-2); }
+.pp-stop-open {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 2px;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+.pp-stop-thumb-wrap { position: relative; flex: none; }
+.pp-stop-thumb { display: block; width: 52px; height: 52px; border-radius: 14px; overflow: hidden; background: var(--bg-muted); }
+.pp-stop-img { width: 100%; height: 100%; object-fit: cover; }
+.pp-stop-thumb-badge {
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 6px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  border: 2px solid var(--bg-surface);
+  background: var(--coral);
+  color: var(--on-brand);
+  font-weight: 800;
+  font-size: 12px;
+}
+.pp-stop-info { min-width: 0; display: grid; gap: 2px; }
+.pp-stop-name { font-weight: 700; font-size: 16px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pp-stop-meta { color: var(--text-2); font-size: 13px; display: flex; align-items: center; gap: 4px; }
+.pp-stop-move-group { display: flex; flex-direction: column; }
+.pp-stop-move-btn, .pp-stop-remove {
+  width: 36px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--text-2);
+  cursor: pointer;
+}
+.pp-stop-remove { height: 44px; width: 40px; }
+.pp-stop-move-btn:hover:not(:disabled), .pp-stop-remove:hover { background: var(--bg-muted); color: var(--text); }
+.pp-stop-move-btn:disabled { opacity: 0.25; cursor: default; }
+.pp-stop.is-visited .pp-stop-card { background: color-mix(in oklab, var(--sage) 16%, var(--bg-surface)); }
+.pp-stop.is-visited .pp-stop-thumb-badge { background: var(--sage); }
+.pp-stop.is-visited .pp-stop-meta { color: var(--sage-deep); font-weight: 700; }
+:root[data-theme="dark"] .pp-stop.is-visited .pp-stop-meta { color: var(--sage); }
 
-/* ---- Navigation handoff sheet ---- */
+.pp-plan-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.pp-optimize-preview {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border-radius: var(--r-lg);
+  background: var(--bg-muted);
+  animation: pp-rise 360ms var(--ease-out) both;
+}
+.pp-optimize-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.pp-suggestions { display: grid; gap: 8px; }
+.pp-suggestions-title { font: 600 16px var(--font-display); }
+.pp-suggestion-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  border-radius: var(--r-md);
+  background: var(--bg-surface);
+}
+.pp-suggestion-photo { flex: none; width: 52px; height: 52px; border-radius: 12px; overflow: hidden; object-fit: cover; }
+.pp-suggestion-info { flex: 1; min-width: 0; display: grid; }
+.pp-suggestion-mood { display: flex; align-items: center; gap: 4px; color: var(--text-2); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+.pp-suggestion-name { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pp-suggestion-card .pp-card-save { margin: 0; padding: 0 14px; flex: none; }
+
+.pp-plan-footer { padding-top: 4px; }
+.pp-plan-footer .pp-btn { width: 100%; }
+
+/* -------------------------------------------------------------- arrival */
+.pp-arrival {
+  display: grid;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--r-lg);
+  border: 2px dashed color-mix(in oklab, var(--honey) 70%, var(--line));
+  background: color-mix(in oklab, var(--honey) 12%, var(--bg-surface));
+}
+.pp-arrival-lead { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.pp-arrival-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.pp-arrival-actions .pp-btn { min-height: 44px; padding-block: 8px; }
+
+/* --------------------------------------------------------------- sheets */
 .pp-sheet {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,.4);
+  z-index: 1000;
   display: flex;
   align-items: flex-end;
-  z-index: 50;
+  justify-content: center;
+  background: rgb(34 28 24 / 0.45);
+  animation: pp-fade 200ms ease both;
+}
+.pp-sheet-inner,
+.pp-detail-sheet-inner {
+  width: 100%;
+  max-width: 560px;
+  background: var(--bg-surface);
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
+  box-shadow: var(--shadow-2);
+  animation: pp-sheet-up 320ms var(--ease-out) both;
 }
 .pp-sheet-inner {
-  background: var(--bg-surface);
-  width: 100%;
-  max-width: 480px;
-  margin: 0 auto;
-  border-radius: 24px 24px 0 0;
-  padding: 24px 20px 32px;
-  display: flex;
-  flex-direction: column;
+  display: grid;
   gap: 10px;
+  padding: 22px 20px calc(20px + env(safe-area-inset-bottom));
 }
-.pp-sheet-title { margin: 0 0 8px; font-weight: 600; font-size: 16px; text-align: center; }
-#trip-options-body { display: flex; flex-direction: column; gap: 10px; }
-#trip-options-body p { margin: 0 0 4px; text-align: center; }
+.pp-sheet-inner::before,
+.pp-detail-sheet-inner::before {
+  content: "";
+  justify-self: center;
+  width: 40px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--line);
+}
+.pp-sheet-title { font: 600 20px var(--font-display); text-align: center; }
+.pp-sheet-body, #trip-options-body { display: grid; gap: 10px; }
+.pp-sheet-inner .pp-btn { width: 100%; }
 
-/* Three-zone sheet: header (photo + close, never scrolls) / body (the
-   actual reading content, scrolls) / footer (save + navigate, always
-   reachable without scrolling to the bottom of a long review). */
 .pp-detail-sheet-inner {
-  background: var(--bg-surface);
-  width: 100%;
-  max-width: 480px;
-  margin: 0 auto;
-  border-radius: 24px 24px 0 0;
-  /* dvh accounts for mobile browser chrome (URL bars, in-app-browser
-     toolbars) that vh doesn't — vh is computed against the full device
-     height even when a toolbar is covering part of the screen, which was
-     making the sheet read as cramped inside e.g. an in-app browser. vh
-     stays as the fallback for the few browsers without dvh support. */
-  max-height: 90vh;
-  max-height: 90dvh;
   display: flex;
   flex-direction: column;
+  max-height: min(88dvh, 760px);
   overflow: hidden;
 }
-
-/* Close floats over the photo (frosted-glass circle, legible against any
-   image) instead of taking its own header row — reclaims vertical space
-   so real content (name, rating, facts) shows without scrolling. Photo
-   is deliberately short: a small preview, not the point of the sheet. */
-.pp-detail-header { position: relative; flex: 0 0 auto; min-height: 52px; }
-.pp-detail-photo-wrap { width: 100%; height: 130px; background: var(--bg-muted); }
-.pp-detail-photo { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pp-detail-sheet-inner::before { position: absolute; margin-top: 8px; left: 50%; translate: -50% 0; z-index: 2; background: rgb(255 255 255 / 0.7); }
+.pp-detail-sheet-inner { position: relative; }
+.pp-detail-header { position: relative; flex: none; min-height: 56px; }
+.pp-detail-photo-wrap { height: 170px; background: var(--bg-muted); }
+.pp-detail-photo { width: 100%; height: 100%; object-fit: cover; }
 .pp-detail-close {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  background: rgba(255,255,255,.75);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  color: #2B211B;
-  width: 36px;
-  height: 36px;
+  top: 12px;
+  right: 12px;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 0;
   border-radius: 50%;
-  box-shadow: 0 1px 4px rgba(0,0,0,.18);
+  background: color-mix(in oklab, var(--bg-surface) 88%, transparent);
+  color: var(--text);
+  box-shadow: var(--shadow-1);
   cursor: pointer;
 }
-.pp-detail-close:active { background: rgba(255,255,255,.95); }
-
-.pp-detail-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 8px 20px 4px; }
-.pp-detail-body h3 { margin: 0 0 4px; font-size: 20px; }
-.pp-detail-body .pp-card-meta { margin: 0 0 12px; }
-.pp-detail-summary { font-style: italic; color: var(--text-secondary); font-size: 15px; margin: 0 0 14px; }
-
-/* Address/phone/website grouped as one visually distinct "facts" panel,
-   set apart from the description and reviews rather than reading as one
-   undifferentiated stack of paragraphs. */
-.pp-detail-facts { background: var(--bg-muted); border-radius: 16px; padding: 12px 14px 2px; margin: 0 0 14px; }
-.pp-detail-row { display: flex; align-items: flex-start; gap: 8px; margin: 0 0 10px; font-size: 15px; }
-.pp-detail-row .pp-icon { margin-top: 2px; color: var(--text-secondary); }
-.pp-detail-row a { color: var(--accent-sky); }
-
-.pp-detail-accordion { border-radius: 14px; background: var(--bg-muted); padding: 0 14px; margin: 0 0 10px; }
+.pp-detail-close:focus-visible { border-radius: 50%; }
+.pp-detail-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 4px 22px 8px; overscroll-behavior: contain; }
+.pp-detail-body h3 { font-size: 24px; margin-bottom: 4px; padding-right: 40px; }
+.pp-detail-body > .pp-card-meta { margin-bottom: 14px; }
+.pp-detail-body > .pp-walkie-say { padding: 24px 0; justify-content: center; }
+.pp-detail-summary { color: var(--text-2); font-size: 16px; margin-bottom: 16px; }
+.pp-detail-facts { display: grid; gap: 10px; padding: 14px 16px; margin-bottom: 14px; border-radius: var(--r-md); background: var(--bg-muted); }
+.pp-detail-row { display: flex; align-items: flex-start; gap: 10px; font-size: 15px; }
+.pp-detail-row .pp-icon { margin-top: 3px; color: var(--text-2); }
+.pp-detail-accordion { border-radius: var(--r-md); background: var(--bg-muted); padding: 0 16px; margin-bottom: 10px; }
 .pp-detail-accordion summary {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 13px 0;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 15px;
+  min-height: 48px;
+  font-weight: 700;
   list-style: none;
+  cursor: pointer;
 }
 .pp-detail-accordion summary::-webkit-details-marker { display: none; }
-.pp-accordion-chevron { transition: transform 150ms ease; color: var(--text-secondary); }
+.pp-accordion-chevron { transition: transform 200ms var(--ease-out); color: var(--text-2); }
 .pp-detail-accordion[open] .pp-accordion-chevron { transform: rotate(180deg); }
-.pp-detail-accordion-body { padding: 0 0 14px; }
-.pp-detail-accordion-body p { margin: 0 0 8px; font-size: 14px; color: var(--text-secondary); }
-.pp-detail-review { font-size: 14px; color: var(--text-secondary); margin: 0 0 10px; }
-
+.pp-detail-accordion-body { padding-bottom: 14px; display: grid; gap: 8px; font-size: 14px; color: var(--text-2); }
 .pp-detail-footer {
-  flex: 0 0 auto;
-  border-top: 1px solid var(--bg-muted);
-  padding: 14px 20px calc(16px + env(safe-area-inset-bottom));
-  display: flex;
-  flex-direction: column;
+  flex: none;
+  display: grid;
   gap: 10px;
+  padding: 12px 22px calc(16px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--line);
 }
+.pp-detail-footer:empty { display: none; }
 .pp-detail-footer .pp-btn { width: 100%; }
 .pp-detail-nav-row { display: flex; gap: 10px; }
 .pp-detail-nav-row .pp-btn { flex: 1; min-height: 44px; padding: 10px 12px; font-size: 14px; }
+
+/* --------------------------------------------------------------- Walkie */
+.pp-walkie { flex: none; overflow: visible; }
+.pp-walkie-body { transform-box: fill-box; transform-origin: 50% 100%; }
+.pp-walkie--idle .pp-walkie-body,
+.pp-walkie--happy .pp-walkie-body { animation: pp-bob 2.8s ease-in-out infinite; }
+.pp-walkie--thinking .pp-walkie-body { animation: pp-tilt 2.2s ease-in-out infinite; }
+.pp-walkie--celebrating .pp-walkie-body { animation: pp-hop 900ms var(--ease-spring) 2; }
+.pp-walkie-sparkle { transform-box: fill-box; transform-origin: center; animation: pp-twinkle 1.6s ease-in-out infinite; }
+.pp-walkie-sparkle:nth-of-type(2n) { animation-delay: 0.4s; }
+.pp-walkie-sparkle:nth-of-type(3n) { animation-delay: 0.8s; }
+
+.pp-walkie-say { display: flex; align-items: flex-end; gap: 10px; text-align: left; }
+.pp-walkie-bubble {
+  position: relative;
+  max-width: 34ch;
+  margin-bottom: 18px;
+  padding: 10px 14px;
+  border-radius: 18px 18px 18px 6px;
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-1);
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1.4;
+  animation: pp-bubble 360ms var(--ease-spring) both;
+}
+.pp-arrival .pp-walkie-bubble, .pp-optimize-preview .pp-walkie-bubble { background: var(--bg-surface); }
+
+/* ----------------------------------------------------------------- maps */
+.leaflet-container { font: inherit; background: var(--bg-sunken); }
+.leaflet-control-attribution { font-size: 10px; }
+.leaflet-bar a { color: var(--on-brand); }
+.pp-pin {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  background: var(--coral);
+  color: var(--on-brand);
+  font: 800 14px var(--font-body);
+  box-shadow: 0 3px 10px rgb(43 33 27 / 0.35);
+}
+.pp-pin.is-visited { background: var(--honey); }
+.pp-pin-dot {
+  display: block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  background: var(--coral);
+  box-shadow: 0 2px 6px rgb(43 33 27 / 0.35);
+  cursor: pointer;
+  transition: transform 160ms var(--ease-spring);
+}
+.pp-pin-dot:hover { transform: scale(1.3); }
+.pp-pin-user {
+  display: block;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  background: var(--sky);
+  box-shadow: 0 0 0 6px color-mix(in oklab, var(--sky) 30%, transparent);
+  animation: pp-pulse 2s ease-out infinite;
+}
+
+/* -------------------------------------------------------------- tablet+ */
+@media (min-width: 720px) {
+  .pp-option-cards { grid-template-columns: 1fr 1fr; }
+  .pp-chips-grid { grid-template-columns: repeat(3, 1fr); }
+  .pp-sheet { align-items: center; padding: 24px; }
+  .pp-sheet-inner, .pp-detail-sheet-inner { border-radius: var(--r-lg); animation-name: pp-pop-in; }
+  .pp-sheet-inner::before, .pp-detail-sheet-inner::before { display: none; }
+  .pp-sheet-inner { max-width: 440px; padding-bottom: 22px; }
+}
+
+/* ------------------------------------------- desktop: list | sticky map */
+@media (min-width: 1024px) {
+  body:is([data-view="discover"], [data-view="plan"]) .pp-main { max-width: 1320px; padding-inline: 24px; }
+  body:is([data-view="discover"], [data-view="plan"]) .pp-demo-banner { margin-bottom: 8px; }
+
+  .pp-split {
+    grid-template-columns: minmax(380px, 460px) minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+    grid-template-areas: "head map" "body map";
+    gap: 16px 24px;
+    align-items: start;
+  }
+  .pp-split-map {
+    position: sticky;
+    top: 16px;
+    align-self: start;
+  }
+  .pp-split-map .pp-map,
+  #plan-map { height: calc(100dvh - var(--header-h) - 56px); min-height: 480px; }
+  /* No stops yet: let the list column span the page. */
+  #view-plan:has(#plan-map-wrap[hidden]) { grid-template-areas: "head head" "body body"; grid-template-columns: minmax(0, 640px); }
+
+  .pp-chips-scroll { flex-wrap: wrap; overflow: visible; margin: 0; padding: 0; }
+  #view-discover { padding-bottom: 0; }
+  .pp-plan-pill { left: max(24px, calc((100vw - 1320px) / 2 + 24px)); translate: none; }
+  .pp-plan-pill:hover { background: #3a2e27; }
+}
+
+/* --------------------------------------------------------------- motion */
+@keyframes pp-rise { from { opacity: 0; transform: translateY(10px); } }
+@keyframes pp-drop { from { opacity: 0; transform: translateY(-8px) scale(0.96); } }
+@keyframes pp-fade { from { opacity: 0; } }
+@keyframes pp-sheet-up { from { transform: translateY(40px); opacity: 0; } }
+@keyframes pp-pop-in { from { transform: scale(0.96); opacity: 0; } }
+@keyframes pp-pop { 40% { transform: scale(1.08); } }
+@keyframes pp-bubble { from { opacity: 0; transform: scale(0.9) translateY(4px); transform-origin: 0 100%; } }
+@keyframes pp-bob { 50% { transform: translateY(-3px); } }
+@keyframes pp-tilt { 50% { transform: rotate(-4deg); } }
+@keyframes pp-hop { 40% { transform: translateY(-10px) rotate(-6deg); } }
+@keyframes pp-twinkle { 50% { transform: scale(0.6); opacity: 0.6; } }
+@keyframes pp-pulse {
+  0% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--sky) 45%, transparent); }
+  100% { box-shadow: 0 0 0 14px transparent; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -71,8 +71,12 @@ create table if not exists stops (
   place_id text not null references places_cache(place_id),
   order_index int not null default 0,
   time_lock time,
+  visited_at timestamptz, -- arrival check-in (USER_FLOW.md Step 8)
   created_at timestamptz not null default now()
 );
+
+-- For databases created before arrival check-ins existed.
+alter table stops add column if not exists visited_at timestamptz;
 
 -- Row Level Security. This is the non-negotiable step from the security
 -- discussion: without these policies, the public anon key the browser uses
