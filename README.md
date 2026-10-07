@@ -47,7 +47,7 @@ ppplaces treats itinerary building as a quest: collect places, drop them onto a 
 | Frontend | Vanilla HTML, CSS, JavaScript (ES modules, no framework, no build step), JSDoc + TypeScript checking |
 | Backend | Cloudflare Pages Functions |
 | Database and auth | Supabase (Postgres, RLS, anonymous auth) |
-| Maps | Google Places API (New), Maps JavaScript API; Leaflet + OSM/CARTO in demo mode |
+| Maps | Google Places API (New), Maps JavaScript API; Leaflet + OpenStreetMap in demo mode |
 | Tooling | TypeScript (`checkJs`), ESLint, `node:test`, Wrangler |
 | Infra | Cloudflare Pages, Cloudflare KV |
 

@@ -1,5 +1,5 @@
-// Leaflet implementation of the map adapter (demo mode). Keyless: CARTO
-// basemap tiles over OpenStreetMap data. Leaflet itself is vendored in
+// Leaflet implementation of the map adapter (demo mode). Keyless: standard
+// OpenStreetMap tiles, tinted to the theme in CSS (.pp-tiles). Leaflet itself is vendored in
 // /vendor and loaded only when a demo map is first needed.
 
 import { ROUTE_COLOR } from "./adapter.js";
@@ -25,14 +25,12 @@ function ensureLeaflet() {
   return loadPromise;
 }
 
-const ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>';
-
-const isDarkTheme = () => document.documentElement.dataset.resolvedTheme === "dark";
-
-const tileUrl = () =>
-  isDarkTheme()
-    ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-    : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
+const ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+// CARTO's basemaps now require an API key, so this uses OSM's own tiles
+// (fine for demo-level traffic under the OSM tile usage policy). Dark mode is
+// a CSS filter on the tile pane rather than a second tile set, so switching
+// themes costs no extra requests.
+const TILE_URL = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
 
 /** @param {string} label @param {boolean} visited */
 const numberedIcon = (label, visited) =>
@@ -55,13 +53,7 @@ const userIcon = () => L.divIcon({ className: "", html: '<span class="pp-pin-use
 export async function createMap(element, center) {
   await ensureLeaflet();
   const map = L.map(element, { zoomControl: true, attributionControl: true }).setView([center.lat, center.lng], 14);
-  let tiles = L.tileLayer(tileUrl(), { attribution: ATTRIBUTION, maxZoom: 19, subdomains: "abcd" }).addTo(map);
-
-  // Swap basemap with the app theme.
-  window.addEventListener("pp-theme-change", () => {
-    tiles.remove();
-    tiles = L.tileLayer(tileUrl(), { attribution: ATTRIBUTION, maxZoom: 19, subdomains: "abcd" }).addTo(map);
-  });
+  L.tileLayer(TILE_URL, { attribution: ATTRIBUTION, maxZoom: 19, className: "pp-tiles" }).addTo(map);
 
   // Leaflet measures its container once; keep it right when layout changes
   // (sheet open, desktop two-pane resize, view switch).

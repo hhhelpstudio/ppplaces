@@ -856,6 +856,9 @@ a { color: var(--sky); }
 /* ----------------------------------------------------------------- maps */
 .leaflet-container { font: inherit; background: var(--bg-sunken); }
 .leaflet-control-attribution { font-size: 10px; }
+/* OSM tiles, warmed to the cream palette; inverted for dark mode. */
+.pp-tiles { filter: saturate(0.7) sepia(0.12) brightness(1.02); }
+:root[data-resolved-theme="dark"] .pp-tiles { filter: invert(1) hue-rotate(180deg) saturate(0.45) brightness(0.85) contrast(0.9); }
 .leaflet-bar a { color: var(--on-brand); }
 .pp-pin {
   display: grid;
