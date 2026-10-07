@@ -1,71 +1,76 @@
-# ppplaces (working name)
+# ppplaces
 
-Friendly, gamified web app for smart travel itinerary planning and discovery.
+**A playful, mobile-first trip planner that turns a pile of "places I want to see" into a walkable, optimized day.**
 
-- Product doc: [docs/PRD.md](docs/PRD.md) (also available as [docs/PRD.docx](docs/PRD.docx))
-- This repo is intentionally separate from other repos on this machine.
+Designed, specced and built solo by [Iman Rafief](https://hhhelpstudio.com), from PRD to working app.
+
+<!-- Add a screenshot or short GIF of the core flow here: docs/screenshot.png -->
+<!-- Live demo: add the Cloudflare Pages URL once deployed -->
+
+---
+
+## The problem
+
+Planning a trip means juggling Google Maps, a notes app, blog posts and a group chat. Utility tools feel like admin work. Inspiration tools (Pinterest, TikTok saves) don't understand geography. And nothing is built for people who are still dreaming, with no dates booked yet.
+
+ppplaces treats itinerary building as a quest: collect places, drop them onto a day, and get back a realistic, optimized route.
+
+## What it does
+
+- **Mood-based discovery.** Pick a vibe, search real places, save them to a trip.
+- **Itinerary builder.** Drag to reorder stops, with an accessible tap-button fallback (not drag-only).
+- **Optimize my day.** Reorders stops into an efficient walking route from your starting point (nearest-neighbor heuristic on haversine distance).
+- **Dream mode to planning mode.** Plan without dates. Adding a date flips the trip to "planning."
+- **Navigation handoff.** Opens the day, or a single stop, in Google Maps or Apple Maps.
+- **Guest sessions.** Start planning instantly with anonymous auth, no sign-up wall.
+
+## Engineering highlights
+
+- **API cost control.** Every Google Places call goes through a server-side proxy with field masking and caching, so the browser never sees the secret key and repeat searches don't re-bill.
+- **Per-IP rate limiting.** Cloudflare KV counters on the metered endpoints stop a runaway client or scraper from running up the bill. Fails open if the binding is missing, so a config mistake can't take the API down.
+- **Row Level Security.** Supabase Postgres schema where users can only read and write their own trips, days and stops.
+- **Split key strategy.** A referrer-restricted browser key for map rendering, and an unrestricted key that only ever lives in server environment variables.
+- **Accessibility.** A WCAG AA contrast pass caught that the original palette in my own spec fell short of 4.5:1. I darkened the values in the same hue family and documented them inline.
 
 ## Stack
 
-- **Cloudflare Pages** — static hosting for `public/`
-- **Cloudflare Pages Functions** — `functions/api/*`, the server-side proxy that holds
-  the secret Google Maps key and talks to Supabase (never exposed to the browser)
-- **Supabase** — Postgres database + Auth (see `supabase/schema.sql`)
-- **Google Maps Platform** — Places API (New) + Maps JavaScript API
+| Layer | Tech |
+|---|---|
+| Frontend | Vanilla HTML, CSS, JavaScript (ES modules, no framework, no build step) |
+| Backend | Cloudflare Pages Functions |
+| Database and auth | Supabase (Postgres, RLS, anonymous auth) |
+| Maps | Google Places API (New), Maps JavaScript API |
+| Infra | Cloudflare Pages, Cloudflare KV |
 
-No build step, no framework — plain HTML/CSS/JS on the frontend, plain `fetch`-based
-functions on the backend.
+## Process
 
-## One-time setup
+I wrote the product spec before any code: problem, positioning, design system, feature specs, API cost strategy, KPIs and a 30-day MVP plan.
 
-1. **Google Cloud** — new project, enable *Places API (New)* and *Maps JavaScript API*.
-   Create two keys: one HTTP-referrer-restricted (for the browser) and one
-   unrestricted/secret (for the server). Set a budget alert immediately.
-2. **Supabase** — new project. In the SQL editor, run `supabase/schema.sql`. Grab the
-   Project URL, `anon` public key, and `service_role` key from Settings -> API.
-3. **Cloudflare** — create a Pages project, connect it to this repo (or use the
-   `wrangler` CLI to deploy directly). In the Pages project's Settings ->
-   Environment variables, add: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`,
-   `GOOGLE_MAPS_SERVER_KEY`. Buy/point the domain in the same Cloudflare account.
-4. Locally:
-   ```bash
-   cp public/js/config.example.js public/js/config.js
-   # fill in SUPABASE_URL, SUPABASE_ANON_KEY, MAPS_BROWSER_KEY
-   cp .dev.vars.example .dev.vars
-   # fill in the same three server secrets as step 3, for local dev
-   npm install
-   npm run dev
-   ```
-
-`config.js` and `.dev.vars` are gitignored — never commit real keys.
+- [Product requirements (PRD)](docs/PRD.md)
+- [User flow and behavior spec](docs/USER_FLOW.md)
 
 ## Status
 
-Week 1 + Week 2/3 core loop scaffolded, following `docs/USER_FLOW.md` end to end:
+Core loop works end to end in local dev: start a trip, pick a mood, choose places, build and optimize the itinerary, add a date, hand off to navigation.
 
-- Supabase schema + RLS, guest (anonymous auth) session.
-- Discovery search (`/api/places/search`, `/api/places/:id`) proxy with field masking
-  and caching per the PRD's Section 4, plus `/api/geocode` for the "Dreaming about
-  somewhere" trip-start path.
-- Full mobile-first flow: Start a trip (Steps 0-1) → Pick a mood (Step 2) → Choose
-  places (Step 3, save-to-trip) → Itinerary plan with drag/arrow reorder and
-  quest-trail travel badges (Step 4) → Optimize my day (Step 5, nearest-neighbor
-  heuristic) → Add a date (Step 6, flips Dream → Planning) → Navigation handoff to
-  Google/Apple Maps, per-stop and whole-day (Step 7) → trip list / return visit
-  (Step 9).
-- Accessible reorder fallback (tap ▲▼ buttons, not drag-only), an explicit
-  "Search this area" map control instead of auto-search-on-pan, and an on-demand
-  rich detail modal (hours/address/reviews/photos-pending, via `/api/places/:id`)
-  when a discovery card is tapped.
-- Real typography (Fredoka display / Inter body per Section 2.3), squishy
-  interaction details (card lift, chip bounce, button press depth), and a WCAG AA
-  contrast pass — the PRD's own `--text-secondary`, `--brand-primary`,
-  `--brand-secondary`, and `--accent-sky` values undershot the 4.5:1 floor the PRD
-  itself requires; darkened in place, same hue family, values documented inline in
-  `public/css/styles.css`.
-- Not yet built: Arrival check-in/badges (Step 8), Walkie illustration (currently
-  plain copy/emoji placeholders), desktop two-pane layout, and a real deploy
-  (currently local dev only).
+Next up: arrival check-ins and badges, the Walkie mascot illustrations, a desktop two-pane layout, and a public deploy.
 
-Needs your own Google Maps Platform keys (`MAPS_BROWSER_KEY` in `public/js/config.js`,
-`GOOGLE_MAPS_SERVER_KEY` in `.dev.vars`) before it runs — see One-time setup above.
+---
+
+## Running it locally
+
+You'll need your own Google Maps Platform, Supabase and Cloudflare accounts.
+
+1. **Google Cloud:** enable *Places API (New)* and *Maps JavaScript API*. Create two keys: one HTTP-referrer-restricted (browser) and one secret (server). Set a budget alert.
+2. **Supabase:** create a project and run `supabase/schema.sql` in the SQL editor.
+3. **Cloudflare:** create a Pages project and add `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` and `GOOGLE_MAPS_SERVER_KEY` as environment variables. Bind the `RATE_LIMIT` KV namespace under Settings > Functions.
+4. Then:
+
+```bash
+cp public/js/config.example.js public/js/config.js   # SUPABASE_URL, SUPABASE_ANON_KEY, MAPS_BROWSER_KEY
+cp .dev.vars.example .dev.vars                       # the three server secrets from step 3
+npm install
+npm run dev
+```
+
+`config.js` and `.dev.vars` are gitignored. Never commit real keys.
