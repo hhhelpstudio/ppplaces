@@ -6,7 +6,15 @@ Designed, specced and built solo by [Iman Rafief](https://hhhelpstudio.com), fro
 
 **[Try the live demo](https://ppplaces.pages.dev)** — no sign-up, no keys. Demo mode runs fully in the browser with sample places in Kyoto, Lisbon and Ubud.
 
-<!-- Screenshots: docs/screenshots/ (mobile plan, desktop two-pane) -->
+![Planning a day in Kyoto: stops on a route map, a collected stamp, and Walkie offering the next one](docs/screenshots/desktop-plan.jpg)
+
+<table>
+  <tr>
+    <td width="33%"><img src="docs/screenshots/mobile-start.jpg" alt="Start screen with Walkie and demo cities" /></td>
+    <td width="33%"><img src="docs/screenshots/mobile-plan.jpg" alt="Mobile plan: arrival check-in and walking times between stops" /></td>
+    <td width="33%"><img src="docs/screenshots/desktop-discover-dark.jpg" alt="Discovery in dark mode: mood chips, saved places and the map" /></td>
+  </tr>
+</table>
 
 ---
 
